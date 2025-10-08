@@ -24,3 +24,23 @@ void open_file() {
     fclose(file);
 }
 
+void add_seminar() {
+    Seminar s;
+    printf("Enter participant name: ");
+    scanf(" %[^\n]", s.participantName);
+    printf("Enter seminar title: ");
+    scanf(" %[^\n]", s.seinarTitle);
+    printf("Enter seminar date (YYYY-MM-DD): ");
+    scanf(" %[^\n]", s.seminarDate);
+    printf("Enter number of participants: ");
+    scanf("%d", &s.participantsCount);
+
+    FILE *file = fopen(FILE_NAME, "a");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+    fprintf(file, "%s,%s,%s,%d\n", s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
+    fclose(file);
+    printf("Seminar added successfully!\n");
+}
