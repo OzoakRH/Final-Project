@@ -29,7 +29,7 @@ void add_seminar() {
     printf("Enter participant name: ");
     scanf(" %[^\n]", s.participantName);
     printf("Enter seminar title: ");
-    scanf(" %[^\n]", s.seinarTitle);
+    scanf(" %[^\n]", s.seminarTitle);
     printf("Enter seminar date (YYYY-MM-DD): ");
     scanf(" %[^\n]", s.seminarDate);
     printf("Enter number of participants: ");
@@ -44,3 +44,4 @@ void add_seminar() {
     fclose(file);
     printf("Seminar added successfully!\n");
 }
+
