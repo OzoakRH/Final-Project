@@ -24,6 +24,7 @@ void open_file() {
     fclose(file);
 }
 
+// การเพิ่มผู้เข้าร่วมสัมมนา
 void add_seminar() {
     Seminar s;
     printf("Enter participant name: ");
@@ -44,4 +45,5 @@ void add_seminar() {
     fclose(file);
     printf("Seminar added successfully!\n");
 }
+
 
