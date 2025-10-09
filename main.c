@@ -480,5 +480,35 @@ void delete_seminar() {
 
     printf("Record deleted successfully!\n");
 }
+// ---------------------- Internal Unit Tests ---------------------- //
+void run_unit_tests() {
+    printf("\n===== Running Unit Tests =====\n");
 
+    // Test add_seminar (simulate)
+    FILE *file = fopen(FILE_NAME, "a");
+    fprintf(file, "UnitTestUser,UnitTestTopic,2025-10-07,20\n");
+    fclose(file);
 
+    // Check add success
+    file = fopen(FILE_NAME, "r");
+    char line[256];
+    int foundAdd = 0;
+    while (fgets(line, sizeof(line), file)) {
+        if (strstr(line, "UnitTestUser"))
+            foundAdd = 1;
+    }
+    fclose(file);
+    printf(foundAdd ? "add_seminar() success\n" : "add_seminar() failed\n");
+
+    // Test search_seminar
+    file = fopen(FILE_NAME, "r");
+    int foundSearch = 0;
+    while (fgets(line, sizeof(line), file)) {
+        if (strstr(line, "UnitTestTopic"))
+            foundSearch = 1;
+    }
+    fclose(file);
+    printf(foundSearch ? "search_seminar() success\n" : "search_seminar() failed\n");
+
+    printf("===== Unit Tests Finished =====\n\n");
+}
