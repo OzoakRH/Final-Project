@@ -24,7 +24,7 @@ void open_file() {
     fclose(file);
 }
 
-// การเพิ่มผู้เข้าร่วมสัมมนา
+//ฟังชั่น เพิ่มข้อมูลผู้สัมมนา
 void add_seminar() {
     Seminar s;
     printf("\n=== Add New Seminar ===\n");
@@ -50,44 +50,57 @@ void add_seminar() {
         sprintf(s.participantName, "%s %s %s", first, middle, last);
 
     // ---- Seminar Topics ----
-    printf("\n---Available Seminar Topics---\n");
-    printf("1. Artificial Intelligence\n");
-    printf("2. Data Science & Analytics\n");
-    printf("3. Cybersecurity Fundamentals\n");
-    printf("4. Cloud Computing & DevOps\n");
-    printf("5. Digital Marketing\n");
-    printf("6. Others\n");
-    printf("-------------------------------\n");
-
     int topicChoice;
-    printf("Select a topic (1-6): ");
-    scanf("%d", &topicChoice);
-    getchar();
+    int validChoice = 0;
 
-    switch (topicChoice) {
-        case 1: strcpy(s.seminarTitle, "Artificial Intelligence"); break;
-        case 2: strcpy(s.seminarTitle, "Data Science & Analytics"); break;
-        case 3: strcpy(s.seminarTitle, "Cybersecurity Fundamentals"); break;
-        case 4: strcpy(s.seminarTitle, "Cloud Computing & DevOps"); break;
-        case 5: strcpy(s.seminarTitle, "Digital Marketing"); break;
-        case 6:
-            printf("Enter custom seminar title: ");
-            fgets(s.seminarTitle, sizeof(s.seminarTitle), stdin);
-            s.seminarTitle[strcspn(s.seminarTitle, "\n")] = '\0';
-            break;
-        default:
-            printf("Invalid choice. Defaulting to 'General Seminar'.\n");
-            strcpy(s.seminarTitle, "General Seminar");
-    }
+    do {
+        printf("\n--- Available Seminar Topics ---\n");
+        printf("1. Artificial Intelligence\n");
+        printf("2. Data Science & Analytics\n");
+        printf("3. Cybersecurity Fundamentals\n");
+        printf("4. Cloud Computing & DevOps\n");
+        printf("5. Digital Marketing\n");
+        printf("6. Others\n");
+        printf("--------------------------------\n");
+        printf("Select a topic (1-6): ");
 
+        if (scanf("%d", &topicChoice) != 1) {
+            printf("Invalid input! Please enter a number between 1 and 6.\n");
+            while (getchar() != '\n');
+            continue;
+        }
+        getchar(); // clear newline
+        switch (topicChoice) {
+            case 1: strcpy(s.seminarTitle, "Artificial Intelligence"); validChoice = 1; break;
+            case 2: strcpy(s.seminarTitle, "Data Science & Analytics"); validChoice = 1; break;
+            case 3: strcpy(s.seminarTitle, "Cybersecurity Fundamentals"); validChoice = 1; break;
+            case 4: strcpy(s.seminarTitle, "Cloud Computing & DevOps"); validChoice = 1; break;
+            case 5: strcpy(s.seminarTitle, "Digital Marketing"); validChoice = 1; break;
+            case 6:
+                printf("Enter custom seminar title: ");
+                fgets(s.seminarTitle, sizeof(s.seminarTitle), stdin);
+                s.seminarTitle[strcspn(s.seminarTitle, "\n")] = '\0';
+                validChoice = 1;
+                break;
+            default:
+                printf("Invalid choice! Please select between 1-6.\n");
+                validChoice = 0;
+        }
+    } while (!validChoice);
     // ---- Date Validation ----
     int validDate = 0;
+    char dateInput[20];
     int year, month, day;
+    
     do {
         printf("Enter seminar date (YYYY-MM-DD): ");
-        scanf("%d-%d-%d", &year, &month, &day);
+        scanf(" %19s", dateInput);
         getchar();
-    
+        
+        if (sscanf(dateInput, "%d-%d-%d", &year, &month, &day) != 3) {
+            printf("Invalid format! Please use YYYY-MM-DD.\n");
+            continue;
+        }
         if (year < 2025 || year > 2028) {
             printf("Invalid year! Must be between 2025 and 2028.\n");
             continue;
@@ -96,33 +109,41 @@ void add_seminar() {
             printf("Invalid month! Must be 1-12.\n");
             continue;
         }
-        if (day < 1 || day > 31) {
-            printf("Invalid day! Must be 1-31.\n");
+        int max_day = 31;
+        switch (month) {
+            case 4: case 6: case 9: case 11:
+                max_day = 30; break;
+            case 2:
+                if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+                    max_day = 29;
+                else
+                    max_day = 28;
+                break;
+        }
+
+        if (day < 1 || day > max_day) {
+            printf("Invalid day! For %d/%d, day must be 1-%d.\n", month, year, max_day);
             continue;
         }
-    
-        // ถ้าผ่านทุกเงื่อนไข
         validDate = 1;
         sprintf(s.seminarDate, "%04d-%02d-%02d", year, month, day);
-    } while (!validDate);
 
+    } while (!validDate);
     // ---- Participant Count ----
     printf("Enter number of participants: ");
     scanf("%d", &s.participantsCount);
+    getchar();
 
-    // ---- Save to CSV ----
     FILE *file = fopen(FILE_NAME, "a");
     if (!file) {
         perror("Error opening file");
         return;
     }
-    fprintf(file, "%s,%s,%s,%d\n",
-            s.participantName, s.seminarTitle,
-            s.seminarDate, s.participantsCount);
+    fprintf(file, "%s,%s,%s,%d\n", s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
     fclose(file);
-
-    printf("\n Seminar added successfully!\n");
+    printf("Seminar added successfully!\n");
 }
+
 // function แสดงตารางข้อมูลทั้งหมด
 void display_all() {
     FILE *file = fopen(FILE_NAME, "r");
@@ -232,3 +253,4 @@ void search_seminar() {
 
     } while (again == 'y' || again == 'Y');
 }
+
