@@ -112,6 +112,43 @@ void add_seminar() {
 
     printf("\n Seminar added successfully!\n");
 }
+// function แสดงตารางข้อมูลทั้งหมด
+void display_all() {
+    FILE *file = fopen(FILE_NAME, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+    char line[256];
+    int count = 0;
+    // อ่าน header
+    fgets(line, sizeof(line), file);
 
+    printf("\n=== All Seminar Records ===\n");
+    printf("--------------------------------------------------------------------------\n");
+    printf("| No | %-20s | %-20s | %-12s | %-5s |\n", 
+           "Participant", "Seminar Title", "Date", "Count");
+    printf("--------------------------------------------------------------------------\n");
 
+    // อ่านข้อมูลทั้งหมดจากไฟล์และพิมพ์ออกมา
+    while (fgets(line, sizeof(line), file)) {
+        Seminar s;
+        sscanf(line, "%[^,],%[^,],%[^,],%d",
+               s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
+        count++;
 
+        printf("| %2d | %-20s | %-20s | %-12s | %-5d |\n", 
+               count,
+               s.participantName,
+               s.seminarTitle,
+               s.seminarDate,
+               s.participantsCount);
+    }
+    printf("--------------------------------------------------------------------------\n");
+    if (count == 0) {
+        printf("No seminar records found.\n");
+    } else {
+        printf("Total records: %d\n", count);
+    }
+    fclose(file);
+}
