@@ -594,3 +594,40 @@ void run_e2e_test() {
 
     printf("===== End-to-End Test Completed =====\n\n");
 }
+// ---------------------- Menu ---------------------- //
+void display_menu() {
+    int choice;
+    while (1) {
+        printf("\n=== Seminar Management ===\n");
+        printf("1. Add Seminar\n");
+        printf("2. Edit Seminar\n");
+        printf("3. Delete Seminar\n");
+        printf("4. Search Seminar\n");
+        printf("5. Display All\n");
+        printf("6. Exit\n");
+        printf("7. Run Unit Tests\n");
+        printf("8. Run E2E Test\n");
+        printf("==========================\n");
+        printf("Choose yours number: ");
+        scanf("%d", &choice);
+        getchar();
+
+        switch (choice) {
+            case 1: add_seminar(); break;
+            case 2: edit_seminar(); break;
+            case 3: delete_seminar(); break;
+            case 4: search_seminar(); break;
+            case 5: display_all(); break;
+            case 6: printf("Goodbye!\n"); exit(0);
+            case 7: run_unit_tests(); break;
+            case 8: run_e2e_test(); break;
+            default: printf("Invalid choice. Try again.\n");
+        }
+    }
+}
+
+int main() {
+    open_file();
+    display_menu();
+    return 0;
+}
