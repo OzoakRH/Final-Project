@@ -82,17 +82,28 @@ void add_seminar() {
 
     // ---- Date Validation ----
     int validDate = 0;
+    int year, month, day;
     do {
         printf("Enter seminar date (YYYY-MM-DD): ");
-        scanf(" %[^\n]", s.seminarDate);
+        scanf("%d-%d-%d", &year, &month, &day);
         getchar();
-
-        if (strlen(s.seminarDate) == 10 &&
-            s.seminarDate[4] == '-' &&
-            s.seminarDate[7] == '-')
-            validDate = 1;
-        else
-            printf("Invalid date format! Please use YYYY-MM-DD.\n");
+    
+        if (year < 2025 || year > 2028) {
+            printf("Invalid year! Must be between 2025 and 2028.\n");
+            continue;
+        }
+        if (month < 1 || month > 12) {
+            printf("Invalid month! Must be 1-12.\n");
+            continue;
+        }
+        if (day < 1 || day > 31) {
+            printf("Invalid day! Must be 1-31.\n");
+            continue;
+        }
+    
+        // ถ้าผ่านทุกเงื่อนไข
+        validDate = 1;
+        sprintf(s.seminarDate, "%04d-%02d-%02d", year, month, day);
     } while (!validDate);
 
     // ---- Participant Count ----
@@ -152,3 +163,4 @@ void display_all() {
     }
     fclose(file);
 }
+
