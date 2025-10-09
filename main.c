@@ -385,7 +385,7 @@ void delete_seminar() {
         return;
     }
 
-    // ✅ แสดงตารางข้อมูลทั้งหมดก่อน
+    // แสดงตารางข้อมูลทั้งหมดก่อน
     printf("\n=== All Seminar Records ===\n");
     printf("--------------------------------------------------------------\n");
     printf("| No | %-20s | %-20s | %-10s | %-5s |\n", "Participant", "Seminar Title", "Date", "Count");
@@ -400,7 +400,7 @@ void delete_seminar() {
     }
     printf("--------------------------------------------------------------\n");
 
-    // ✅ ให้ผู้ใช้พิมพ์ keyword เพื่อค้นหาที่จะลบ
+    // ให้ผู้ใช้พิมพ์ keyword เพื่อค้นหาที่จะลบ
     char keyword[100];
     printf("\nEnter participant name or seminar title to search for deletion: ");
     scanf(" %[^\n]", keyword);
@@ -421,7 +421,7 @@ void delete_seminar() {
         return;
     }
 
-    // ✅ แสดงรายการที่ตรงกับ keyword
+    // แสดงรายการที่ตรงกับ keyword
     printf("\nFound %d record(s):\n", matchCount);
     printf("--------------------------------------------------------------\n");
     printf("| No | %-20s | %-20s | %-10s | %-5s |\n", "Participant", "Seminar Title", "Date", "Count");
@@ -438,7 +438,7 @@ void delete_seminar() {
     }
     printf("--------------------------------------------------------------\n");
 
-    // ✅ ให้ผู้ใช้เลือกว่าจะลบแถวไหน
+    // ให้ผู้ใช้เลือกว่าจะลบแถวไหน
     int delChoice;
     printf("Enter record number to delete (1-%d): ", matchCount);
     scanf("%d", &delChoice);
@@ -451,7 +451,7 @@ void delete_seminar() {
 
     int deleteIndex = matchIndexes[delChoice - 1];
 
-    // ✅ ยืนยันก่อนลบ
+    // ยืนยันก่อนลบ
     char confirm;
     printf("Are you sure you want to delete this record? (y/n): ");
     scanf(" %c", &confirm);
@@ -462,7 +462,7 @@ void delete_seminar() {
         return;
     }
 
-    // ✅ เขียนกลับเฉพาะข้อมูลที่ไม่ถูกลบ
+    // เขียนกลับเฉพาะข้อมูลที่ไม่ถูกลบ
     FILE *temp = fopen("temp.csv", "w");
     fprintf(temp, "ParticipantName,SeminarTitle,SeminarDate,ParticipantsCount\n");
     for (int i = 0; i < total; i++) {
@@ -478,6 +478,7 @@ void delete_seminar() {
     remove(FILE_NAME);
     rename("temp.csv", FILE_NAME);
 
-    printf("✅ Record deleted successfully!\n");
+    printf("Record deleted successfully!\n");
 }
+
 
