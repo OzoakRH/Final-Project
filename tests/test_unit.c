@@ -11,20 +11,22 @@ typedef struct {
     int participantsCount;
 } Seminar;
 
-// ฟังก์ชันทดสอบการเพิ่มข้อมูล
-int test_add_seminar() {
+// ------------------------------------------------------------
+// ฟังก์ชันทดสอบการเพิ่มข้อมูล (Add Seminar)
+// ------------------------------------------------------------
+int test_add_seminar_success() {
     FILE *file = fopen(FILE_NAME, "a");
     if (!file) return 0;
-    fprintf(file, "UnitTester,AI Testing,2025-10-09,50\n");
+    fprintf(file, "UnitTester_Add,AI Testing Success,2025-10-09,50\n");
     fclose(file);
 
-    // ตรวจสอบว่าเพิ่มสำเร็จไหม
+    // ตรวจสอบว่าข้อมูลถูกเพิ่มจริงไหม
     file = fopen(FILE_NAME, "r");
     if (!file) return 0;
     char line[256];
     int found = 0;
     while (fgets(line, sizeof(line), file)) {
-        if (strstr(line, "UnitTester")) {
+        if (strstr(line, "UnitTester_Add")) {
             found = 1;
             break;
         }
@@ -33,14 +35,27 @@ int test_add_seminar() {
     return found;
 }
 
-// ฟังก์ชันทดสอบการค้นหาข้อมูล
-int test_search_seminar() {
+int test_add_seminar_fail() {
+    // ทดสอบกรณีเปิดไฟล์ไม่ได้
+    FILE *file = fopen("non_exist_directory/seminars.csv", "a");
+    if (!file) {
+        return 1; // ถือว่าทดสอบ fail case ผ่าน (เพราะเปิดไม่ได้ตามคาด)
+    } else {
+        fclose(file);
+        return 0; // เปิดได้ แปลว่า fail case ไม่ผ่าน
+    }
+}
+
+// ------------------------------------------------------------
+// ฟังก์ชันทดสอบการค้นหาข้อมูล (Search Seminar)
+// ------------------------------------------------------------
+int test_search_seminar_success() {
     FILE *file = fopen(FILE_NAME, "r");
     if (!file) return 0;
     char line[256];
     int found = 0;
     while (fgets(line, sizeof(line), file)) {
-        if (strstr(line, "AI Testing")) {
+        if (strstr(line, "AI Testing Success")) {
             found = 1;
             break;
         }
@@ -49,15 +64,41 @@ int test_search_seminar() {
     return found;
 }
 
+int test_search_seminar_fail() {
+    FILE *file = fopen(FILE_NAME, "r");
+    if (!file) return 0;
+    char line[256];
+    int found = 0;
+    while (fgets(line, sizeof(line), file)) {
+        if (strstr(line, "NotExistTopic")) { // keyword ที่ไม่มีในไฟล์
+            found = 1;
+            break;
+        }
+    }
+    fclose(file);
+    return !found; // ถ้าไม่เจอถือว่าผ่าน (fail case)
+}
+
+// ------------------------------------------------------------
+// Main: Run all unit tests
+// ------------------------------------------------------------
 int main() {
-    printf("===== Running Unit Tests =====\n");
+    printf("===== Running Unit Tests =====\n\n");
 
-    int add_result = test_add_seminar();
-    printf("Test add_seminar(): %s\n", add_result ? "SUCCESS" : "FAILED");
+    // --- Test Add Seminar ---
+    int add_success = test_add_seminar_success();
+    printf("[Add Seminar - Success Case]  %s\n", add_success ? " PASSED" : " FAILED");
 
-    int search_result = test_search_seminar();
-    printf("Test search_seminar(): %s\n", search_result ? "SUCCESS" : "FAILED");
+    int add_fail = test_add_seminar_fail();
+    printf("[Add Seminar - Fail Case]     %s\n", add_fail ? " PASSED" : " FAILED");
 
-    printf("===== Unit Tests Finished =====\n");
+    // --- Test Search Seminar ---
+    int search_success = test_search_seminar_success();
+    printf("[Search Seminar - Success Case] %s\n", search_success ? " PASSED" : " FAILED");
+
+    int search_fail = test_search_seminar_fail();
+    printf("[Search Seminar - Fail Case]    %s\n", search_fail ? " PASSED" : " FAILED");
+
+    printf("\n===== Unit Tests Finished =====\n");
     return 0;
 }
