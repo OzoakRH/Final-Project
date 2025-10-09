@@ -14,13 +14,13 @@ typedef struct {
 void run_e2e_test() {
     printf("===== Running End-to-End Test =====\n");
 
-    // 1️⃣ เพิ่มข้อมูล
+    //  เพิ่มข้อมูล
     FILE *file = fopen(FILE_NAME, "a");
     fprintf(file, "E2E_User,Deep Learning 101,2025-10-15,80\n");
     fclose(file);
     printf("[Add] Added E2E_User successfully.\n");
 
-    // 2️⃣ ค้นหา
+    //  ค้นหา
     file = fopen(FILE_NAME, "r");
     char line[256];
     int found = 0;
@@ -33,11 +33,11 @@ void run_e2e_test() {
     }
     fclose(file);
     if (!found) {
-        printf("[Search] ❌ Record not found after adding.\n");
+        printf("[Search]  Record not found after adding.\n");
         return;
     }
 
-    // 3️⃣ แก้ไขข้อมูล (จำลอง)
+    //  แก้ไขข้อมูล (จำลอง)
     FILE *temp = fopen("temp.csv", "w");
     file = fopen(FILE_NAME, "r");
     fgets(line, sizeof(line), file);
@@ -59,7 +59,7 @@ void run_e2e_test() {
     rename("temp.csv", FILE_NAME);
     printf("[Edit] Edited E2E_User successfully.\n");
 
-        // 4️⃣ ลบข้อมูล
+        //  ลบข้อมูล
     file = fopen(FILE_NAME, "r");
     temp = fopen("temp.csv", "w");
     fgets(line, sizeof(line), file);
@@ -79,7 +79,7 @@ void run_e2e_test() {
     rename("temp.csv", FILE_NAME);
     printf("[Delete] Deleted E2E_User successfully.\n");
 
-        // 5️⃣ ตรวจสอบว่าลบจริงไหม
+        //  ตรวจสอบว่าลบจริงไหม
     file = fopen(FILE_NAME, "r");
     found = 0;
     while (fgets(line, sizeof(line), file)) {
