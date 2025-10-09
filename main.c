@@ -214,20 +214,18 @@ void search_seminar() {
             printf("Error: Cannot open file.\n");
             return;
         }
-
         char line[256];
         fgets(line, sizeof(line), file); // skip header
         int found = 0;
-
+        
         printf("\n--------------------------------------------------------------\n");
         printf("| %-20s | %-20s | %-10s | %-5s |\n", "Participant Name", "Seminar Title", "Date", "Count");
         printf("--------------------------------------------------------------\n");
-
+        
         while (fgets(line, sizeof(line), file)) {
             Seminar s;
             sscanf(line, "%[^,],%[^,],%[^,],%d", 
                    s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
-
             int match = 0;
             if (choice == 1 && strstr(s.participantName, keyword)) match = 1;
             if (choice == 2 && strstr(s.seminarTitle, keyword)) match = 1;
@@ -238,19 +236,125 @@ void search_seminar() {
                 found++;
             }
         }
-
         fclose(file);
-
         printf("--------------------------------------------------------------\n");
         if (found == 0)
             printf("No matching record found.\n");
         else
             printf("Found %d record(s).\n", found);
-
         printf("\nDo you want to search again? (y/n): ");
         scanf(" %c", &again);
         getchar();
-
     } while (again == 'y' || again == 'Y');
+}
+
+void edit_seminar() {
+    // --- Display all records before editing ---
+    display_all();
+    printf("\n");
+
+    char keyword[100];
+    printf("Enter participant name to edit: ");
+    fgets(keyword, sizeof(keyword), stdin);
+    keyword[strcspn(keyword, "\n")] = '\0'; // remove newline
+
+    if (strlen(keyword) == 0) {
+        printf("No input provided. Returning to menu.\n");
+        return;
+    }
+
+    FILE *file = fopen(FILE_NAME, "r");
+    FILE *temp = fopen("temp.csv", "w");
+    if (!file || !temp) {
+        perror("Error opening file");
+        return;
+    }
+
+    char line[256];
+    fgets(line, sizeof(line), file);
+    fprintf(temp, "%s", line); // copy header
+
+    int found = 0;
+    while (fgets(line, sizeof(line), file)) {
+        Seminar s;
+        sscanf(line, "%[^,],%[^,],%[^,],%d", 
+               s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
+
+        if (strcmp(s.participantName, keyword) == 0) {
+            found = 1;
+            printf("\nEditing record for: %s\n", s.participantName);
+
+            printf("Enter new seminar title: ");
+            fgets(s.seminarTitle, sizeof(s.seminarTitle), stdin);
+            s.seminarTitle[strcspn(s.seminarTitle, "\n")] = '\0';
+
+            // --- ตรวจสอบวันเดือนปี ---
+            int year, month, day;
+            while (1) {
+                printf("Enter new date (YYYY-MM-DD): ");
+                char input[20];
+                fgets(input, sizeof(input), stdin);
+                input[strcspn(input, "\n")] = '\0';
+
+                if (sscanf(input, "%d-%d-%d", &year, &month, &day) != 3) {
+                    printf("Invalid format! Please use YYYY-MM-DD.\n");
+                    continue;
+                }
+
+                if (year < 2025 || year > 2028) {
+                    printf("Invalid year! Year must be between 2025 and 2028.\n");
+                    continue;
+                }
+                if (month < 1 || month > 12) {
+                    printf("Invalid month! Month must be between 1 and 12.\n");
+                    continue;
+                }
+                
+                int days_in_month[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+                if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
+                    days_in_month[1] = 29; // leap year
+
+                if (day < 1 || day > days_in_month[month - 1]) {
+                    printf("Invalid day! This month has only %d days.\n", days_in_month[month - 1]);
+                    continue;
+                }
+                
+                // ✅ valid date
+                sprintf(s.seminarDate, "%04d-%02d-%02d", year, month, day);
+                break;
+            }
+            
+            printf("Enter new participant count: ");
+            scanf("%d", &s.participantsCount);
+            getchar();
+
+            // --- ยืนยันก่อนบันทึก ---
+            char confirm;
+            printf("\nConfirm update? (y/n): ");
+            scanf(" %c", &confirm);
+            getchar();
+            
+            if (confirm == 'y' || confirm == 'Y') {
+                fprintf(temp, "%s,%s,%s,%d\n", 
+                        s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
+                printf("Record updated successfully!\n");
+            } else {
+                fprintf(temp, "%s,%s,%s,%d\n", 
+                        s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
+                printf("Update cancelled. Original record retained.\n");
+            }
+        } else {
+            fprintf(temp, "%s,%s,%s,%d\n", 
+                    s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
+        }
+    }
+
+    fclose(file);
+    fclose(temp);
+    remove(FILE_NAME);
+    rename("temp.csv", FILE_NAME);
+
+    if (!found)
+        printf("No matching record found.\n");
 }
 
