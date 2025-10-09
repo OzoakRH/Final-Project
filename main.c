@@ -512,3 +512,85 @@ void run_unit_tests() {
 
     printf("===== Unit Tests Finished =====\n\n");
 }
+
+void run_e2e_test() {
+    printf("\n===== Running End-to-End Test =====\n");
+
+    // เพิ่มข้อมูลใหม่
+    FILE *file = fopen(FILE_NAME, "a");
+    fprintf(file, "E2E_User,Deep Learning 101,2025-10-15,80\n");
+    fclose(file);
+    printf("[Add] Added E2E_User successfully.\n");
+
+    // ค้นหาข้อมูล
+    file = fopen(FILE_NAME, "r");
+    char line[256];
+    int found = 0;
+    while (fgets(line, sizeof(line), file)) {
+        if (strstr(line, "E2E_User")) {
+            printf("[Search] Found record: %s", line);
+            found = 1;
+            break;
+        }
+    }
+    fclose(file);
+    if (!found) {
+        printf("[Search]  Record not found after adding.\n");
+        return;
+    }
+
+    // แก้ไขข้อมูล (จำลอง)
+    FILE *temp = fopen("temp.csv", "w");
+    file = fopen(FILE_NAME, "r");
+    fgets(line, sizeof(line), file);  // เขียน header เดิม
+    fprintf(temp, "%s", line);
+    while (fgets(line, sizeof(line), file)) {
+        Seminar s;
+        sscanf(line, "%[^,],%[^,],%[^,],%d",
+               s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
+        if (strcmp(s.participantName, "E2E_User") == 0) {
+            strcpy(s.seminarTitle, "Deep Learning Advanced");
+            s.participantsCount = 99;
+        }
+        fprintf(temp, "%s,%s,%s,%d\n",
+                s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
+    }
+    fclose(file);
+    fclose(temp);
+    remove(FILE_NAME);
+    rename("temp.csv", FILE_NAME);
+    printf("[Edit] Edited E2E_User successfully.\n");
+
+    // ลบข้อมูล
+    file = fopen(FILE_NAME, "r");
+    temp = fopen("temp.csv", "w");
+    fgets(line, sizeof(line), file);  // เขียน header
+    fprintf(temp, "%s", line);
+    while (fgets(line, sizeof(line), file)) {
+        Seminar s;
+        sscanf(line, "%[^,],%[^,],%[^,],%d",
+               s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
+        if (strcmp(s.participantName, "E2E_User") != 0) {  // ลบเฉพาะคนที่ชื่อ E2E_User
+            fprintf(temp, "%s,%s,%s,%d\n",
+                    s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
+        }
+    }
+    fclose(file);
+    fclose(temp);
+    remove(FILE_NAME);
+    rename("temp.csv", FILE_NAME);
+    printf("[Delete] Deleted E2E_User successfully.\n");
+
+    // ตรวจสอบว่าลบจริงไหม
+    file = fopen(FILE_NAME, "r");
+    found = 0;
+    while (fgets(line, sizeof(line), file)) {
+        line[strcspn(line, "\r\n")] = 0;
+        if (strstr(line, "E2E_User"))
+            found = 1;
+    }
+    fclose(file);
+    printf(found ? "[Check] Delete failed.\n" : "[Check] Delete verified.\n");
+
+    printf("===== End-to-End Test Completed =====\n\n");
+}
