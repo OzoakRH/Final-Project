@@ -11,6 +11,7 @@ typedef struct {
     int participantsCount;
 } Seminar;
 
+// ---------------------- Core Functions ---------------------- //
 void open_file() {
     FILE *file = fopen(FILE_NAME, "a+");
     if (!file) {
@@ -49,6 +50,25 @@ void add_seminar() {
     else
         sprintf(s.participantName, "%s %s %s", first, middle, last);
 
+    // ---- Check for duplicate participant ----
+    FILE *checkFile = fopen(FILE_NAME, "r");
+    if (checkFile) {
+        char line[256];
+        fgets(line, sizeof(line), checkFile); // skip header
+        int exists = 0;
+        while (fgets(line, sizeof(line), checkFile)) {
+            if (strstr(line, s.participantName)) {
+                exists = 1;
+                break;
+            }
+        }
+        fclose(checkFile);
+        if (exists) {
+            printf("Participant already exists! Use Edit instead.\n");
+            return;
+        }
+    }
+
     // ---- Seminar Topics ----
     int topicChoice;
     int validChoice = 0;
@@ -66,10 +86,11 @@ void add_seminar() {
 
         if (scanf("%d", &topicChoice) != 1) {
             printf("Invalid input! Please enter a number between 1 and 6.\n");
-            while (getchar() != '\n');
+            while (getchar() != '\n'); // clear buffer
             continue;
         }
         getchar(); // clear newline
+
         switch (topicChoice) {
             case 1: strcpy(s.seminarTitle, "Artificial Intelligence"); validChoice = 1; break;
             case 2: strcpy(s.seminarTitle, "Data Science & Analytics"); validChoice = 1; break;
@@ -87,16 +108,17 @@ void add_seminar() {
                 validChoice = 0;
         }
     } while (!validChoice);
+
     // ---- Date Validation ----
     int validDate = 0;
     char dateInput[20];
     int year, month, day;
-    
+
     do {
         printf("Enter seminar date (YYYY-MM-DD): ");
         scanf(" %19s", dateInput);
         getchar();
-        
+
         if (sscanf(dateInput, "%d-%d-%d", &year, &month, &day) != 3) {
             printf("Invalid format! Please use YYYY-MM-DD.\n");
             continue;
@@ -109,10 +131,10 @@ void add_seminar() {
             printf("Invalid month! Must be 1-12.\n");
             continue;
         }
+
         int max_day = 31;
         switch (month) {
-            case 4: case 6: case 9: case 11:
-                max_day = 30; break;
+            case 4: case 6: case 9: case 11: max_day = 30; break;
             case 2:
                 if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
                     max_day = 29;
@@ -125,15 +147,22 @@ void add_seminar() {
             printf("Invalid day! For %d/%d, day must be 1-%d.\n", month, year, max_day);
             continue;
         }
+
         validDate = 1;
         sprintf(s.seminarDate, "%04d-%02d-%02d", year, month, day);
 
     } while (!validDate);
-    // ---- Participant Count ----
-    printf("Enter number of participants: ");
-    scanf("%d", &s.participantsCount);
-    getchar();
 
+    // ---- Participant Count Validation ----
+    do {
+        printf("Enter number of participants: ");
+        scanf("%d", &s.participantsCount);
+        getchar();
+        if (s.participantsCount <= 0)
+            printf("Participants must be greater than 0.\n");
+    } while (s.participantsCount <= 0);
+
+    // ---- Save to CSV ----
     FILE *file = fopen(FILE_NAME, "a");
     if (!file) {
         perror("Error opening file");
@@ -141,10 +170,10 @@ void add_seminar() {
     }
     fprintf(file, "%s,%s,%s,%d\n", s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
     fclose(file);
+
     printf("Seminar added successfully!\n");
 }
 
-// function แสดงตารางข้อมูลทั้งหมด
 void display_all() {
     FILE *file = fopen(FILE_NAME, "r");
     if (!file) {
@@ -214,18 +243,20 @@ void search_seminar() {
             printf("Error: Cannot open file.\n");
             return;
         }
+
         char line[256];
         fgets(line, sizeof(line), file); // skip header
         int found = 0;
-        
+
         printf("\n--------------------------------------------------------------\n");
         printf("| %-20s | %-20s | %-10s | %-5s |\n", "Participant Name", "Seminar Title", "Date", "Count");
         printf("--------------------------------------------------------------\n");
-        
+
         while (fgets(line, sizeof(line), file)) {
             Seminar s;
             sscanf(line, "%[^,],%[^,],%[^,],%d", 
                    s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
+
             int match = 0;
             if (choice == 1 && strstr(s.participantName, keyword)) match = 1;
             if (choice == 2 && strstr(s.seminarTitle, keyword)) match = 1;
@@ -236,15 +267,19 @@ void search_seminar() {
                 found++;
             }
         }
+
         fclose(file);
+
         printf("--------------------------------------------------------------\n");
         if (found == 0)
             printf("No matching record found.\n");
         else
             printf("Found %d record(s).\n", found);
+
         printf("\nDo you want to search again? (y/n): ");
         scanf(" %c", &again);
         getchar();
+
     } while (again == 'y' || again == 'Y');
 }
 
@@ -297,7 +332,7 @@ void edit_seminar() {
                 input[strcspn(input, "\n")] = '\0';
 
                 if (sscanf(input, "%d-%d-%d", &year, &month, &day) != 3) {
-                    printf("Invalid format! Please use YYYY-MM-DD.\n");
+                    printf("❌ Invalid format! Please use YYYY-MM-DD.\n");
                     continue;
                 }
 
@@ -309,7 +344,7 @@ void edit_seminar() {
                     printf("Invalid month! Month must be between 1 and 12.\n");
                     continue;
                 }
-                
+
                 int days_in_month[] = {31,28,31,30,31,30,31,31,30,31,30,31};
                 if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0))
                     days_in_month[1] = 29; // leap year
@@ -318,22 +353,22 @@ void edit_seminar() {
                     printf("Invalid day! This month has only %d days.\n", days_in_month[month - 1]);
                     continue;
                 }
-                
+
                 // ✅ valid date
                 sprintf(s.seminarDate, "%04d-%02d-%02d", year, month, day);
                 break;
             }
-            
+
             printf("Enter new participant count: ");
             scanf("%d", &s.participantsCount);
-            getchar();
+            getchar(); // clear leftover newline
 
             // --- ยืนยันก่อนบันทึก ---
             char confirm;
             printf("\nConfirm update? (y/n): ");
             scanf(" %c", &confirm);
-            getchar();
-            
+            getchar(); // clear newline
+
             if (confirm == 'y' || confirm == 'Y') {
                 fprintf(temp, "%s,%s,%s,%d\n", 
                         s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
@@ -357,6 +392,7 @@ void edit_seminar() {
     if (!found)
         printf("No matching record found.\n");
 }
+
 //ฟังชั่น ลบข้อมูลสัมมนา
 void delete_seminar() {
     FILE *file = fopen(FILE_NAME, "r");
@@ -385,7 +421,7 @@ void delete_seminar() {
         return;
     }
 
-    // แสดงตารางข้อมูลทั้งหมดก่อน
+    // ✅ แสดงตารางข้อมูลทั้งหมดก่อน
     printf("\n=== All Seminar Records ===\n");
     printf("--------------------------------------------------------------\n");
     printf("| No | %-20s | %-20s | %-10s | %-5s |\n", "Participant", "Seminar Title", "Date", "Count");
@@ -400,7 +436,7 @@ void delete_seminar() {
     }
     printf("--------------------------------------------------------------\n");
 
-    // ให้ผู้ใช้พิมพ์ keyword เพื่อค้นหาที่จะลบ
+    // ✅ ให้ผู้ใช้พิมพ์ keyword เพื่อค้นหาที่จะลบ
     char keyword[100];
     printf("\nEnter participant name or seminar title to search for deletion: ");
     scanf(" %[^\n]", keyword);
@@ -421,7 +457,7 @@ void delete_seminar() {
         return;
     }
 
-    // แสดงรายการที่ตรงกับ keyword
+    // ✅ แสดงรายการที่ตรงกับ keyword
     printf("\nFound %d record(s):\n", matchCount);
     printf("--------------------------------------------------------------\n");
     printf("| No | %-20s | %-20s | %-10s | %-5s |\n", "Participant", "Seminar Title", "Date", "Count");
@@ -438,7 +474,7 @@ void delete_seminar() {
     }
     printf("--------------------------------------------------------------\n");
 
-    // ให้ผู้ใช้เลือกว่าจะลบแถวไหน
+    // ✅ ให้ผู้ใช้เลือกว่าจะลบแถวไหน
     int delChoice;
     printf("Enter record number to delete (1-%d): ", matchCount);
     scanf("%d", &delChoice);
@@ -451,7 +487,7 @@ void delete_seminar() {
 
     int deleteIndex = matchIndexes[delChoice - 1];
 
-    // ยืนยันก่อนลบ
+    // ✅ ยืนยันก่อนลบ
     char confirm;
     printf("Are you sure you want to delete this record? (y/n): ");
     scanf(" %c", &confirm);
@@ -462,7 +498,7 @@ void delete_seminar() {
         return;
     }
 
-    // เขียนกลับเฉพาะข้อมูลที่ไม่ถูกลบ
+    // ✅ เขียนกลับเฉพาะข้อมูลที่ไม่ถูกลบ
     FILE *temp = fopen("temp.csv", "w");
     fprintf(temp, "ParticipantName,SeminarTitle,SeminarDate,ParticipantsCount\n");
     for (int i = 0; i < total; i++) {
@@ -478,8 +514,9 @@ void delete_seminar() {
     remove(FILE_NAME);
     rename("temp.csv", FILE_NAME);
 
-    printf("Record deleted successfully!\n");
+    printf("✅ Record deleted successfully!\n");
 }
+
 // ---------------------- Internal Unit Tests ---------------------- //
 void run_unit_tests() {
     printf("\n===== Running Unit Tests =====\n");
@@ -500,7 +537,7 @@ void run_unit_tests() {
     fclose(file);
     printf(foundAdd ? "add_seminar() success\n" : "add_seminar() failed\n");
 
-    // Test search_seminar
+    // Test search_seminar (simulate)
     file = fopen(FILE_NAME, "r");
     int foundSearch = 0;
     while (fgets(line, sizeof(line), file)) {
@@ -516,13 +553,13 @@ void run_unit_tests() {
 void run_e2e_test() {
     printf("\n===== Running End-to-End Test =====\n");
 
-    // เพิ่มข้อมูลใหม่
+    // 1️⃣ เพิ่มข้อมูลใหม่
     FILE *file = fopen(FILE_NAME, "a");
     fprintf(file, "E2E_User,Deep Learning 101,2025-10-15,80\n");
     fclose(file);
     printf("[Add] Added E2E_User successfully.\n");
 
-    // ค้นหาข้อมูล
+    // 2️⃣ ค้นหาข้อมูล
     file = fopen(FILE_NAME, "r");
     char line[256];
     int found = 0;
@@ -535,11 +572,11 @@ void run_e2e_test() {
     }
     fclose(file);
     if (!found) {
-        printf("[Search]  Record not found after adding.\n");
+        printf("[Search] ❌ Record not found after adding.\n");
         return;
     }
 
-    // แก้ไขข้อมูล (จำลอง)
+    // 3️⃣ แก้ไขข้อมูล (จำลอง)
     FILE *temp = fopen("temp.csv", "w");
     file = fopen(FILE_NAME, "r");
     fgets(line, sizeof(line), file);  // เขียน header เดิม
@@ -561,7 +598,7 @@ void run_e2e_test() {
     rename("temp.csv", FILE_NAME);
     printf("[Edit] Edited E2E_User successfully.\n");
 
-    // ลบข้อมูล
+    // 4️⃣ ลบข้อมูล
     file = fopen(FILE_NAME, "r");
     temp = fopen("temp.csv", "w");
     fgets(line, sizeof(line), file);  // เขียน header
@@ -570,7 +607,7 @@ void run_e2e_test() {
         Seminar s;
         sscanf(line, "%[^,],%[^,],%[^,],%d",
                s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
-        if (strcmp(s.participantName, "E2E_User") != 0) {  // ลบเฉพาะคนที่ชื่อ E2E_User
+        if (strcmp(s.participantName, "E2E_User") != 0) {  // ✅ ลบเฉพาะคนที่ชื่อ E2E_User
             fprintf(temp, "%s,%s,%s,%d\n",
                     s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
         }
@@ -581,11 +618,11 @@ void run_e2e_test() {
     rename("temp.csv", FILE_NAME);
     printf("[Delete] Deleted E2E_User successfully.\n");
 
-    // ตรวจสอบว่าลบจริงไหม
+    // 5️⃣ ตรวจสอบว่าลบจริงไหม
     file = fopen(FILE_NAME, "r");
     found = 0;
     while (fgets(line, sizeof(line), file)) {
-        line[strcspn(line, "\r\n")] = 0;
+        line[strcspn(line, "\r\n")] = 0; // ตัด newline
         if (strstr(line, "E2E_User"))
             found = 1;
     }
@@ -594,10 +631,18 @@ void run_e2e_test() {
 
     printf("===== End-to-End Test Completed =====\n\n");
 }
+
 // ---------------------- Menu ---------------------- //
 void display_menu() {
+#ifdef _WIN32
+    #define CLEAR "cls"
+#else
+    #define CLEAR "clear"
+#endif
+
     int choice;
     while (1) {
+        system(CLEAR);
         printf("\n=== Seminar Management ===\n");
         printf("1. Add Seminar\n");
         printf("2. Edit Seminar\n");
@@ -623,6 +668,9 @@ void display_menu() {
             case 8: run_e2e_test(); break;
             default: printf("Invalid choice. Try again.\n");
         }
+
+        printf("\nPress Enter to return to menu...");
+        getchar();
     }
 }
 
