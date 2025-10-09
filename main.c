@@ -357,4 +357,127 @@ void edit_seminar() {
     if (!found)
         printf("No matching record found.\n");
 }
+//ฟังชั่น ลบข้อมูลสัมมนา
+void delete_seminar() {
+    FILE *file = fopen(FILE_NAME, "r");
+    if (!file) {
+        perror("Error opening file");
+        return;
+    }
+
+    Seminar list[200];
+    int total = 0;
+    char line[256];
+
+    fgets(line, sizeof(line), file); // skip header
+
+    // อ่านข้อมูลทั้งหมด
+    while (fgets(line, sizeof(line), file)) {
+        Seminar s;
+        sscanf(line, "%[^,],%[^,],%[^,],%d",
+               s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
+        list[total++] = s;
+    }
+    fclose(file);
+
+    if (total == 0) {
+        printf("\nNo seminar data found.\n");
+        return;
+    }
+
+    // ✅ แสดงตารางข้อมูลทั้งหมดก่อน
+    printf("\n=== All Seminar Records ===\n");
+    printf("--------------------------------------------------------------\n");
+    printf("| No | %-20s | %-20s | %-10s | %-5s |\n", "Participant", "Seminar Title", "Date", "Count");
+    printf("--------------------------------------------------------------\n");
+    for (int i = 0; i < total; i++) {
+        printf("| %2d | %-20s | %-20s | %-10s | %-5d |\n",
+               i + 1,
+               list[i].participantName,
+               list[i].seminarTitle,
+               list[i].seminarDate,
+               list[i].participantsCount);
+    }
+    printf("--------------------------------------------------------------\n");
+
+    // ✅ ให้ผู้ใช้พิมพ์ keyword เพื่อค้นหาที่จะลบ
+    char keyword[100];
+    printf("\nEnter participant name or seminar title to search for deletion: ");
+    scanf(" %[^\n]", keyword);
+    getchar();
+
+    int matchIndexes[200];
+    int matchCount = 0;
+
+    // ค้นหาตรง keyword
+    for (int i = 0; i < total; i++) {
+        if (strstr(list[i].participantName, keyword) || strstr(list[i].seminarTitle, keyword)) {
+            matchIndexes[matchCount++] = i;
+        }
+    }
+
+    if (matchCount == 0) {
+        printf("No matching seminar found.\n");
+        return;
+    }
+
+    // ✅ แสดงรายการที่ตรงกับ keyword
+    printf("\nFound %d record(s):\n", matchCount);
+    printf("--------------------------------------------------------------\n");
+    printf("| No | %-20s | %-20s | %-10s | %-5s |\n", "Participant", "Seminar Title", "Date", "Count");
+    printf("--------------------------------------------------------------\n");
+
+    for (int i = 0; i < matchCount; i++) {
+        int idx = matchIndexes[i];
+        printf("| %2d | %-20s | %-20s | %-10s | %-5d |\n",
+               i + 1,
+               list[idx].participantName,
+               list[idx].seminarTitle,
+               list[idx].seminarDate,
+               list[idx].participantsCount);
+    }
+    printf("--------------------------------------------------------------\n");
+
+    // ✅ ให้ผู้ใช้เลือกว่าจะลบแถวไหน
+    int delChoice;
+    printf("Enter record number to delete (1-%d): ", matchCount);
+    scanf("%d", &delChoice);
+    getchar();
+
+    if (delChoice < 1 || delChoice > matchCount) {
+        printf("Invalid selection. Cancelled.\n");
+        return;
+    }
+
+    int deleteIndex = matchIndexes[delChoice - 1];
+
+    // ✅ ยืนยันก่อนลบ
+    char confirm;
+    printf("Are you sure you want to delete this record? (y/n): ");
+    scanf(" %c", &confirm);
+    getchar();
+
+    if (confirm != 'y' && confirm != 'Y') {
+        printf("Deletion cancelled.\n");
+        return;
+    }
+
+    // ✅ เขียนกลับเฉพาะข้อมูลที่ไม่ถูกลบ
+    FILE *temp = fopen("temp.csv", "w");
+    fprintf(temp, "ParticipantName,SeminarTitle,SeminarDate,ParticipantsCount\n");
+    for (int i = 0; i < total; i++) {
+        if (i != deleteIndex)
+            fprintf(temp, "%s,%s,%s,%d\n",
+                    list[i].participantName,
+                    list[i].seminarTitle,
+                    list[i].seminarDate,
+                    list[i].participantsCount);
+    }
+    fclose(temp);
+
+    remove(FILE_NAME);
+    rename("temp.csv", FILE_NAME);
+
+    printf("✅ Record deleted successfully!\n");
+}
 
