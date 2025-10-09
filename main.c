@@ -204,7 +204,7 @@ void search_seminar() {
             printf("Invalid choice! Please select 1 or 2.\n");
             continue;
         }
-        
+
         printf("Enter keyword: ");
         fgets(keyword, sizeof(keyword), stdin);
         keyword[strcspn(keyword, "\n")] = '\0'; // remove newline
