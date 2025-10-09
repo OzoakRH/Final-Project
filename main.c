@@ -514,7 +514,7 @@ void delete_seminar() {
     remove(FILE_NAME);
     rename("temp.csv", FILE_NAME);
 
-    printf("✅ Record deleted successfully!\n");
+    printf("Record deleted successfully!\n");
 }
 
 // ---------------------- Internal Unit Tests ---------------------- //
@@ -634,15 +634,8 @@ void run_e2e_test() {
 
 // ---------------------- Menu ---------------------- //
 void display_menu() {
-#ifdef _WIN32
-    #define CLEAR "cls"
-#else
-    #define CLEAR "clear"
-#endif
-
     int choice;
     while (1) {
-        system(CLEAR);
         printf("\n=== Seminar Management ===\n");
         printf("1. Add Seminar\n");
         printf("2. Edit Seminar\n");
@@ -668,9 +661,6 @@ void display_menu() {
             case 8: run_e2e_test(); break;
             default: printf("Invalid choice. Try again.\n");
         }
-
-        printf("\nPress Enter to return to menu...");
-        getchar();
     }
 }
 
