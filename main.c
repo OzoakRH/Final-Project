@@ -27,57 +27,90 @@ void open_file() {
 // การเพิ่มผู้เข้าร่วมสัมมนา
 void add_seminar() {
     Seminar s;
-    char firstName[50], middleName[50], lastName[50];
-    int validDate = 0;
+    printf("\n=== Add New Seminar ===\n");
 
-    // --- Get Name Parts ---
+    // ---- Input Name ----
+    char first[50], middle[50], last[50];
     printf("Enter first name: ");
-    scanf(" %[^\n]", firstName);
-    printf("Enter middle name (or press Enter / '-' if none): ");
-    getchar(); // Clear buffer for safety
-    fgets(middleName, sizeof(middleName), stdin);
-    middleName[strcspn(middleName, "\n")] = '\0'; // Remove newline
-    if (strlen(middleName) == 0) strcpy(middleName, "-");
+    scanf(" %[^\n]", first);
+    getchar();
+
+    printf("Enter middle name (or '-' if none): ");
+    scanf(" %[^\n]", middle);
+    getchar();
+
     printf("Enter last name: ");
-    scanf(" %[^\n]", lastName);
+    scanf(" %[^\n]", last);
+    getchar();
 
-    snprintf(s.participantName, sizeof(s.participantName), "%s %s %s", firstName, middleName, lastName);
+    // Combine name
+    if (strcmp(middle, "-") == 0 || strlen(middle) == 0)
+        sprintf(s.participantName, "%s %s", first, last);
+    else
+        sprintf(s.participantName, "%s %s %s", first, middle, last);
 
-    // --- Get Seminar Info ---
-    printf("Enter seminar title: ");
-    scanf(" %[^\n]", s.seminarTitle);
+    // ---- Seminar Topics ----
+    printf("\n---Available Seminar Topics---\n");
+    printf("1. Artificial Intelligence\n");
+    printf("2. Data Science & Analytics\n");
+    printf("3. Cybersecurity Fundamentals\n");
+    printf("4. Cloud Computing & DevOps\n");
+    printf("5. Digital Marketing\n");
+    printf("6. Others\n");
+    printf("-------------------------------\n");
 
-    // --- Validate Date Format ---
+    int topicChoice;
+    printf("Select a topic (1-6): ");
+    scanf("%d", &topicChoice);
+    getchar();
+
+    switch (topicChoice) {
+        case 1: strcpy(s.seminarTitle, "Artificial Intelligence"); break;
+        case 2: strcpy(s.seminarTitle, "Data Science & Analytics"); break;
+        case 3: strcpy(s.seminarTitle, "Cybersecurity Fundamentals"); break;
+        case 4: strcpy(s.seminarTitle, "Cloud Computing & DevOps"); break;
+        case 5: strcpy(s.seminarTitle, "Digital Marketing"); break;
+        case 6:
+            printf("Enter custom seminar title: ");
+            fgets(s.seminarTitle, sizeof(s.seminarTitle), stdin);
+            s.seminarTitle[strcspn(s.seminarTitle, "\n")] = '\0';
+            break;
+        default:
+            printf("Invalid choice. Defaulting to 'General Seminar'.\n");
+            strcpy(s.seminarTitle, "General Seminar");
+    }
+
+    // ---- Date Validation ----
+    int validDate = 0;
     do {
         printf("Enter seminar date (YYYY-MM-DD): ");
         scanf(" %[^\n]", s.seminarDate);
+        getchar();
 
-        if (strlen(s.seminarDate) != 10 ||
-            s.seminarDate[4] != '-' ||
-            s.seminarDate[7] != '-' ||
-            !isdigit(s.seminarDate[0]) || !isdigit(s.seminarDate[1]) ||
-            !isdigit(s.seminarDate[2]) || !isdigit(s.seminarDate[3]) ||
-            !isdigit(s.seminarDate[5]) || !isdigit(s.seminarDate[6]) ||
-            !isdigit(s.seminarDate[8]) || !isdigit(s.seminarDate[9])) {
-            printf("Invalid date format! Please use YYYY-MM-DD.\n");
-        } else {
+        if (strlen(s.seminarDate) == 10 &&
+            s.seminarDate[4] == '-' &&
+            s.seminarDate[7] == '-')
             validDate = 1;
-        }
+        else
+            printf("Invalid date format! Please use YYYY-MM-DD.\n");
     } while (!validDate);
 
+    // ---- Participant Count ----
     printf("Enter number of participants: ");
     scanf("%d", &s.participantsCount);
 
-    // --- Write to CSV ---
+    // ---- Save to CSV ----
     FILE *file = fopen(FILE_NAME, "a");
     if (!file) {
         perror("Error opening file");
         return;
     }
-    fprintf(file, "%s,%s,%s,%d\n", s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
+    fprintf(file, "%s,%s,%s,%d\n",
+            s.participantName, s.seminarTitle,
+            s.seminarDate, s.participantsCount);
     fclose(file);
 
-    printf("Seminar added successfully!\n");
+    printf("\n Seminar added successfully!\n");
 }
 
 
