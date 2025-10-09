@@ -164,3 +164,71 @@ void display_all() {
     fclose(file);
 }
 
+//ฟังชั่น ค้นหาข้อมูล
+void search_seminar() {
+    int choice;
+    char keyword[100];
+    char again;
+
+    do {
+        printf("\n=== Search Seminar ===\n");
+        printf("Search by:\n");
+        printf("1. Participant Name\n");
+        printf("2. Seminar Title\n");
+        printf("Choose (1 or 2): ");
+        scanf("%d", &choice);
+        getchar(); // clear buffer
+
+        if (choice != 1 && choice != 2) {
+            printf("Invalid choice! Please select 1 or 2.\n");
+            continue;
+        }
+        
+        printf("Enter keyword: ");
+        fgets(keyword, sizeof(keyword), stdin);
+        keyword[strcspn(keyword, "\n")] = '\0'; // remove newline
+
+        FILE *file = fopen(FILE_NAME, "r");
+        if (!file) {
+            printf("Error: Cannot open file.\n");
+            return;
+        }
+
+        char line[256];
+        fgets(line, sizeof(line), file); // skip header
+        int found = 0;
+
+        printf("\n--------------------------------------------------------------\n");
+        printf("| %-20s | %-20s | %-10s | %-5s |\n", "Participant Name", "Seminar Title", "Date", "Count");
+        printf("--------------------------------------------------------------\n");
+
+        while (fgets(line, sizeof(line), file)) {
+            Seminar s;
+            sscanf(line, "%[^,],%[^,],%[^,],%d", 
+                   s.participantName, s.seminarTitle, s.seminarDate, &s.participantsCount);
+
+            int match = 0;
+            if (choice == 1 && strstr(s.participantName, keyword)) match = 1;
+            if (choice == 2 && strstr(s.seminarTitle, keyword)) match = 1;
+
+            if (match) {
+                printf("| %-20s | %-20s | %-10s | %-5d |\n", 
+                       s.participantName, s.seminarTitle, s.seminarDate, s.participantsCount);
+                found++;
+            }
+        }
+
+        fclose(file);
+
+        printf("--------------------------------------------------------------\n");
+        if (found == 0)
+            printf("No matching record found.\n");
+        else
+            printf("Found %d record(s).\n", found);
+
+        printf("\nDo you want to search again? (y/n): ");
+        scanf(" %c", &again);
+        getchar();
+
+    } while (again == 'y' || again == 'Y');
+}
